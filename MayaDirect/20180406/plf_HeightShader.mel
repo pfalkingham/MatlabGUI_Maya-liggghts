@@ -1,0 +1,69 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Based around a height ramp shader found on creative crash - http://www.creativecrash.com/maya/script/height-based-shader-creator
+//Creates a ramp shader varying by z or y coordinate
+//Creates a 'scale bar' at the X extreme of the selected object
+//By scaling the scale bar, you can change the ramp, as extents are based on bounding box of scalebar
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+//Create height-based shader procedure///////////////////////////////////////////////////////////////////  
+global proc plf_HeightShader()
+{
+    //Get the currently selected object - do this first to avoid future object creation overriding.
+    string $selObjs[] = `ls -sl`;
+    string $item = $selObjs[0];
+
+    //if statement to determine if y is up
+    int $yIsUp = 0;
+    string $direction; 
+    if ($yIsUp){
+        $direction = "Y";
+    }
+    else{
+        $direction = "Z";
+    }
+    
+    //create Scale bar/box - later make dependant on Y up.  maybe check if statement and rotate
+    string $scalebar[] = `polyCube -w 0.2 -h 0.2 -d 2 -n ($item+"_scale")`;
+    string $scaleBar = $scalebar[0];
+    
+    //Ramp create and connect to placement node
+    string $ramp = `shadingNode -asTexture ramp`;
+    string $placementNode = `shadingNode -asUtility place2dTexture`;
+    connectAttr ($placementNode + ".outUV") ($ramp + ".uv");
+    connectAttr ($placementNode + ".outUvFilterSize") ($ramp + ".uvFilterSize");
+    
+ 
+    //Create setRange
+    string $setRange = `shadingNode -asUtility setRange`;
+    setAttr ($setRange + ".maxZ") 1;
+        
+    connectAttr ($scaleBar+".boundingBoxMin"+$direction) ($setRange + ".oldMinZ");
+    connectAttr ($scaleBar+".boundingBoxMax"+$direction) ($setRange + ".oldMaxZ");
+ 
+    //Connect setRange to ramp
+    connectAttr -f ($setRange + ".outValueZ") ($ramp + ".vCoord");
+    
+    //Sampler info node create and connect to set range
+    string $samplerInfo = `shadingNode -asUtility samplerInfo`;
+    connectAttr -f ($samplerInfo + ".pointWorldZ") ($setRange + ".valueZ");
+    
+    //Create shaders and connect them  
+    string $lamCreate = `shadingNode -asShader lambert`;
+    connectAttr -f ($ramp + ".outColor") ($lamCreate + ".color");
+    //hyperShadePanelGraphNodeNetwork hyperShadePanel1 graph1HyperShadeEd $lamCreate;
+
+    //move the scale bar to the edge of the selected object (so it isn't lost inside, at the origin)
+    float $moveScale = `getAttr ($item+".boundingBoxMaxX")`+0.1;
+    select -r $scaleBar;
+    move -a $moveScale 0 0;
+    hyperShade -assign $lamCreate;
+    select -r $item;
+    hyperShade -assign $lamCreate;
+    print $item;
+
+}
+
+createHBRamp;
+/////////////////////////////////////////////End of Script///////////////////////////////////////////////

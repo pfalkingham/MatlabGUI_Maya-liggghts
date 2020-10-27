@@ -1,0 +1,49 @@
+//This script takes two inputs, generates a cylinder (pivot at one end) at the origin, aligned with x, and labelled sensibly for LIGGGHTS
+//You need to have two joints selected - in order proximal-Distal (i.e. the first joint selected controls the latter - note that in most set-ups the ankle controls the Tibia, so is in the opposite direction.)
+//Cylinder radius is hardcoded for now.  Generally 0.5 cm for TMT/tibia, and 0.25 for toes. (scale up TMT and tibia after this script)
+
+
+global proc genCylinder()
+{
+    string $bones[] = `ls -sl`;
+    string $proximalBone;
+    string $distalBone;
+    string $cylName;
+    float $radius = 0.003; //m
+
+
+    //Later - check if only two are selected and issue warning if not!
+
+
+    //extract names and get new name for cylinder
+    $proximalBone = $bones[0]; 
+    $distalBone = $bones[1]; 
+    string $buffer[];
+    tokenize $proximalBone ":" $buffer;
+    $cylName = "liggghts_"+$buffer[size($buffer)-1];
+
+
+    //calculate distance between points
+    vector $vone = `xform -q -t -ws $proximalBone`;
+    vector $vtwo = `xform -q -t -ws $distalBone`;
+    vector $result = $vone-$vtwo;
+    float $distance = mag($result);
+
+    //create cylinder
+    polyCylinder -r $radius -h $distance -sx 20 -sy 3 -sz 10 -ax 1 0 0 -rcp 1 -cuv 3 -ch 1 -n $cylName;
+
+    //move cylinder's end to origin (move by half distance)
+    float $halfDist = $distance/2;
+    print $halfDist;
+
+    //move pivot to origin
+    float $neghalfDist = $halfDist*-1;
+    move -r $neghalfDist 0 0 $cylName.scalePivot $cylName.rotatePivot;
+    select $cylName;
+    move $halfDist 0 0;
+    FreezeTransformations;
+
+    //Point Constrain to proximal
+    pointConstraint $proximalBone $cylName;
+    orientConstraint  $proximalBone $cylName;
+}

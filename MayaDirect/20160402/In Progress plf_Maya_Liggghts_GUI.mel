@@ -1,0 +1,52 @@
+if (`window -exists plf_Maya_Liggghts_GUI` == true) deleteUI plf_Maya_Liggghts_GUI;  
+
+window plf_Maya_Liggghts_GUI;
+//Variables
+
+    global float $RadiusUsr;
+    global float $YoungUsr;
+    global float $FrictionUsr;
+    global float $CohesionUsr;
+    global float $DensityUsr;
+    global float $PoissonUsr;
+    global float $TimestepUsr;
+    global float $totTimeUsr;
+
+
+//Window ornaments
+    frameLayout -l "LIGGGHTS conversion";
+    text "Ensure that cylinders are selected and animation has been baked and filtered";
+    text "Ensure that SIMINS1, SIMBOX1, and tray exist";
+//columnLayout;
+//Input variables
+    text "Particle Radius (m):";
+    floatField -minValue 0 -value 0.0005 -ann "Timestep" -precision 6 -step 0.000001 Radius;    
+
+    text "Young's Modulus (>5e6):";
+    floatField -minValue 5e7 -value 5e7 -ann "Young's Modulus" -precision 0 -step 1000000 Young;
+    
+    text "Coefficient of Friction:";
+    floatField -minValue 0 -maxValue 1 -value 0.9 -ann "Friction" -precision 0 -step 0.01 Friction; 
+    
+    text "Cohesion energy density:";
+    floatField -minValue 0 -value 75000 -ann "Cohesion" -precision 0 -step 1000 Cohesion; 
+    
+    text "Particle Density";
+     floatField -minValue 0 -value 1200 -ann "Density" -precision 0 -step 100 Density; 
+     
+    text "Poisson Ratio";
+    floatField -minValue 0 -maxValue 1 -value 0.4 -ann "Poisson" -precision 0 -step 0.01 Poisson; 
+    
+    text "Timestep size(s):";
+    floatField -minValue 0 -value 0.000001 -ann "Timestep" -precision 9 -step 0.00000001 Timestep;     
+    
+    text "Simulation time (particle insertion) (s)";
+    floatField -minValue 0 -value 1 -ann "TotTime" -precision 4 -step 0.1 TotTime;   
+
+
+    
+    
+    //float $youngs = `floatField -q -v Young`;
+//assign floats to variables    
+    button -label "Run" -command "$RadiusUsr = (`floatField -q -v Radius`); $YoungUsr = (`floatField -q -v Young`); $FrictionUsr = (`floatField -q -v Friction`); $CohesionUsr = (`floatField -q -v Cohesion`); $DensityUsr = (`floatField -q -v Density`); $PoissonUsr = (`floatField -q -v Poisson`); $TimestepUsr = (`floatField -q -v Timestep`); $totTimeUsr = (`floatField -q -v TotTime`); deleteUI plf_Maya_Liggghts_GUI;";
+showWindow plf_Maya_Liggghts_GUI;
